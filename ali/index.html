@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Rap Battles</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+
+<!--    <script src="socket.io/socket.io.js"></script> -->
+    <script src="js/socket.io.js"></script>
+    <script src="js/jquery.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/common.js"></script>
+    <script src="js/uuid.js"></script>
+    <!-- Custom CSS -->
+    <style>
+    body {
+        padding-top: 70px;
+        /* Required padding for .navbar-fixed-top. Remove if using .navbar-static-top. Change if height of navigation changes. */
+    }
+
+    .btn-group {
+        position: relative;
+    }
+    .panel-height {
+
+	height:80vh;
+	overflow:hidden;
+
+    }
+    .overflow-panel {
+
+	overflow:auto;
+    }
+      form { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; }
+      form input { border: 0; padding: 10px; width: 90%; margin-right: .5%; }
+      form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
+      #messages { list-style-type: none; margin: 0; padding: 0; overflow: hidden; }
+      #messages li { padding: 5px 10px; }
+      #messages li:nth-child(odd) { background: #eee; }
+
+    </style>
+</head>
+
+<body>
+
+<script>
+$(document).ready(function(){
+	var uid = null;
+	var state = null;
+	var socket = io("http://45.55.206.4:9090");
+	socket.on('config', function(data){ 
+		state = data.state;
+		uid = data.id;
+		if(state==="currentRapper"){
+			$(rapper).attr('style','visibility:visible');
+			$(listener).attr('style','visibility:hidden');
+		}else if (state === "rapper"){
+			$(rapper).attr('style','visibility:hidden');
+			$(listener).attr('style','visibility:visible');
+		} else if(state === "queue"){
+			$(rapper).attr('style','visibility:hidden');
+			$(listener).attr('style','visibility:visible');
+		} else if(state === "listener") {
+			$(rapper).attr('style','visibility:hidden');
+			$(listener).attr('style','visibility:visible');	
+		} else {				
+			$(rapper).attr('style','visibility:hidden');
+			$(listener).attr('style','visibility:visible');
+		}
+				
+	});
+
+var source;
+  var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  // Source node for audio, we play to output
+  source = audioCtx.createBufferSource();
+  source.connect(audioCtx.destination);
+
+  // Buffer we fill with some audio data
+  var buffer = audioCtx.createBuffer(1, audioCtx.sampleRate * 60, 44100);
+  // Pos in that buffer
+  var bufferPos = 0;
+  source.buffer = buffer;
+  
+  //var socket = io('http://45.55.206.4:9090');
+  var counter = 0;
+  var b = buffer.getChannelData(0);
+  socket.on('stream', function (data) {
+	console.log(".");
+  	var a = new Float32Array(data);
+  	for (var i = 0; i < a.length; i++) {
+  		b[bufferPos++] = a[i];
+		if(bufferPos >= b.length)
+			bufferPos = 0;
+  	};
+  });
+
+$("#ayy").click(function(){
+	source.start();
+});
+
+source.onended = function(e){
+	console.log(e);
+}
+
+setTimeout(function(){
+console.log('ok');
+source.start();
+}, 500);
+
+
+
+});
+
+</script>
+    <!-- Navigation -->
+    <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+        <div class="container">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="#">Rap Battles</a>
+            </div>
+        </div>
+        <!-- /.container -->
+    </nav>
+
+    <!-- Page Content -->
+      <div class="container">
+        <div class="row">
+
+            <div class="col-xs-3">
+                <div class="panel panel-default">
+                 <div class="panel-heading">Queue</div>
+                  <div class="panel-body text-center">
+
+                    <div class="btn-group" role="group" aria-label="...">
+                      <button type="button" class="btn btn-primary">Add Me</button>
+                      <button type="button" class="btn btn-danger">Remove Me</button>
+                    </div>
+                    <p><p>
+                    
+                  </div>
+                </div>
+            </div>
+
+           <div class="col-xs-6">
+                <div class="panel panel-default">
+                 <div class="panel-heading">Currently Rapping</div>
+                  <div class="panel-body">
+                    
+			<div class="panel panel-default text-center" id="listener">
+			  <div class="panel-heading">Listener Panel</div>	
+                 		<div class="btn-group" role="group" aria-label="...">
+                      		<button type="button" class="btn btn-primary">Like Rapper 1</button>
+                      		<button type="button" class="btn btn-primary">Like Rapper 2</button>
+                    		</div>
+			</div>
+			<div class="panel panel-default text-center" id="rapper">
+			 <div class="panel-heading">Rapper Panel</div>	
+                    		<div class="btn-group" role="group" aria-label="...">
+                      		<button type="button" class="btn btn-danger">Stop Rap</button>
+                      		<button type="button" class="btn btn-danger">Exit Rap</button>
+                    		</div>
+			 
+
+
+	<!--			<div class="panel-heading">Rapper Panel</div>	
+				<div class="btn-group" role="group" aria-label="...">
+					<button type="button" class="btn btn-danger">Stop Rap</button>
+					<button type="button" class="btn btn-danger">Exit Rap</button>
+
+					<audio controls id="rapBeat">
+					<source src="static/Answer.wav">
+					</audio>
+
+					<p>Set ur delay bro</p>
+					<input type="range" min="0" max="100" value="100" id="delay">
+
+					<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+					<script src="https://cdn.socket.io/socket.io-1.3.5.js"></script>
+					<script src="js/common.js"></script>
+					<script src="js/rapper.js"></script>
+
+				</div>-->
+			</div>
+
+			<script>
+			$(document).ready(function(){
+			function displayPanel(val) {
+			}
+			});
+			</script>
+                  </div>
+                </div>
+            </div>
+            <div class="col-xs-3" name="chat">
+                <div class="panel panel-default panel-height">
+                 <div class="panel-heading">Chat Room</div>
+                  <div class="panel-body overflow-panel">
+    			<ul id="messages"></ul>
+
+		  </div>
+		</div>
+            </div>
+        </div>
+    </div>
+
+    <form action="">
+      <input id="m" autocomplete="off" /><button>Send</button>
+    </form>
+    <script>
+      
+      var socket = io('http://45.55.206.4:8080');
+      $('form').submit(function(){
+        socket.emit('chat message', $('#m').val());
+	console.log($('#m').val())
+        $('#m').val('');
+        return false;
+      });
+      socket.on('chat message', function(msg){
+        $('#messages').prepend($('<li>').text(msg));
+      });
+    </script>  		 
+    <!-- /.container -->
+
+</body>
+
+</html>
