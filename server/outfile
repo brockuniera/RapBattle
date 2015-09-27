@@ -1,0 +1,44 @@
+package main
+
+import (
+	"io/ioutil"
+	"log"
+
+	"golang.org/x/net/websocket"
+)
+
+func main() {
+	sendmessage()
+	sendfile()
+}
+
+func sendmessage() {
+	origin := "http://localhost/"
+	url := "ws://45.55.206.4:12345/echo"
+	ws, err := websocket.Dial(url, "", origin)
+	if err != nil {
+		log.Fatal("dial failed", err)
+	}
+	err = websocket.Message.Send(ws, []byte("hello, world!"))
+	if err != nil {
+		log.Fatal("message failed", err)
+	}
+}
+
+func sendfile() {
+	origin := "http://localhost/"
+	url := "ws://45.55.206.4:12345/sendfile"
+	ws, err := websocket.Dial(url, "", origin)
+	if err != nil {
+		log.Fatal("dial failed", err)
+	}
+	bytes, err := ioutil.ReadFile("./main.go")
+	if err != nil {
+		log.Fatalf("file read error", err)
+	}
+	wr, err := ws.Write(bytes)
+	log.Printf("wrote %v bytes", wr)
+	if err != nil {
+		log.Fatalf("socket write error", err)
+	}
+}
