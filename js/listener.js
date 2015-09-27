@@ -1,88 +1,44 @@
-window.onload = function(){
-
-	var
-	setupWebSocket = function(){
-	}
-
-	var 
+var
+startListening = function(){
 	// Start off by initializing a new context.
 	var context = new (window.AudioContext || window.webkitAudioContext)();
 
-	function pushToWebSocket(floatarray){
-		websock.send(floatarray.buffer);
-	}
-
-	function noAudio(stream){
-		console.log("bad");
-	}
-
-	// Create our websocket to rap
-	var websockuri = "ws://45.55.206.4:12345/echo";
-	var websock = new WebSocket(websockuri);
-	websock.binaryType = "arraybuffer";
-
-	websock.onopen = function(e){
-		console.log("connection made to servy");
-	}
-
-	websock.onclose = function(e){
-		console.log("servy over(" + e.code + ")");
-	}
-
-	// TODO this will contain watcher song data
-	websock.onmessage = function(e){
-		//console.log("message received(" + e.data + ")");
-	}
-
-	websock.onerror = function(e){
-		console.log("error o no(" + e.data + ")");
-	}
-
+	// Create websocket
+	var websock = getWebSocket();
+	// Messages push data into array
+	websock.onmessage = onMessageAdd;
 
 	// Processer
-	var processer = context.createScriptProcessor(512, 2, 2);
+	var processer = context.createScriptProcessor(rap_settings.bufferSize, 1, 1);
+	// Connect to speakers
 	processer.connect(context.destination);
 
 	processer.onaudioprocess = function(audioEvent){
-		// The input buffer is the song we loaded earlier
-		var inputBuffer = audioEvent.inputBuffer;
+		var sample;
+		var outputData = audioEvent.outputBuffer.getChannelData(0);
 
-		// The output buffer contains the samples that will be modified and played
-		//var outputBuffer = audioEvent.outputBuffer;
-
-		// Grab channel data, send it over
-		var inputData = inputBuffer.getChannelData(0);
-		pushToWebSocket(inputData);
-
-		// Loop through the output channels (in this case there is only one)
-		/*
-		   for (var channel = 0; channel < outputBuffer.numberOfChannels; channel++) {
-		   var inputData = inputBuffer.getChannelData(channel);
-		   var outputData = outputBuffer.getChannelData(channel);
-
-		// Loop through the 4096 samples
-		for (var sample = 0; sample < inputBuffer.length; sample++) {
-		// make output equal to the same as the input
-		outputData[sample] = inputData[sample];
+		var dataArray = queue.shift();
+		
+		// 0 out array if no data
+		if(dataArray === undefined){
+			for (sample = 0; sample < outputData.length; sample++) {
+				outputData[sample] = 0;
+			}
+			return;
 		}
+
+		for (sample = 0; sample < outputData.length; sample++) {
+			outputData[sample] = inputData[sample];
 		}
-		 */
 	}
+},
 
-	function gotAudio(stream){
-		var mic = context.createMediaStreamSource(stream);
-		var beat = context.createMediaElementSource(
-				document.getElementById('rapBeat')
-				);
+onMessageAdd = function(e){
+	queue.push(e)
+},
 
-		// Mix node
-		var mix = context.createGain();
-		mic.connect(mix);
-		beat.connect(mix);
+queue = []
 
-		// Connect to processer
-		mix.connect(processer);
-	}
-
-
+window.onload = function(){
+	startListening();
 }
